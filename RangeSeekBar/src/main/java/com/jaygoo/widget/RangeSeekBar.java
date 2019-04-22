@@ -8,13 +8,18 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.os.Parcelable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import java.util.Map;
 
 import static com.jaygoo.widget.SeekBar.INDICATOR_MODE_ALWAYS_SHOW;
 
 
 public class RangeSeekBar extends View {
+
+    public final String TAG = "RangeSeekBar";
 
     //normal seekBar mode
     public final static int SEEKBAR_MODE_SINGLE = 1;
@@ -24,6 +29,7 @@ public class RangeSeekBar extends View {
     public final static int TRICK_MARK_MODE_NUMBER = 0;
     //other equally arranged
     public final static int TRICK_MARK_MODE_OTHER = 1;
+    public final static int TRICK_MARK_MODE_HOUR = 2;
     //tick mark text gravity
     public final static int TRICK_MARK_GRAVITY_LEFT = 0;
     public final static int TRICK_MARK_GRAVITY_CENTER = 1;
@@ -106,15 +112,24 @@ public class RangeSeekBar extends View {
 
     public RangeSeekBar(Context context) {
         this(context, null);
+        Log.d(TAG, ">>>>>>>>>>>>>>>>>RangeSeekBar(Context context) cunstructor 1111111111111 <<<<<<<<<<<<<<<<<<<<<");
     }
 
     public RangeSeekBar(Context context, AttributeSet attrs) {
         super(context, attrs);
+        Log.d(TAG, ">>>>>>>>>>>>>>>>>(Context context, AttributeSet attrs) cunstructor 222222<<<<<<<<<<<<<<<<<<<<<");
         initAttrs(attrs);
         initPaint();
 
-        leftSB = new SeekBar(this, attrs, true);
-        rightSB = new SeekBar(this, attrs, false);
+        // 원본코드 by.hnc
+//        leftSB = new SeekBar(this, attrs, true);
+//        rightSB = new SeekBar(this, attrs, false);
+
+        // 수정코드 by.hnc : TODO 만약 수정모드라면 수정할 강좌 스케줄 시간 설정 값 가져오는 API 호출이 선행되어야 함
+        // TODO 10, 23은 신규작성시 기본 세팅 값임
+        leftSB = new SeekBar(this, attrs, true, (10 - minProgress) / (maxProgress - minProgress + 1));
+        rightSB = new SeekBar(this, attrs, false, (23 - minProgress) / (maxProgress - minProgress + 1));
+
         rightSB.setVisible(seekBarMode != SEEKBAR_MODE_SINGLE);
 
         setRange(minProgress, maxProgress, rangeInterval, tickMarkNumber);
@@ -259,14 +274,16 @@ public class RangeSeekBar extends View {
         if (leftSB.getIndicatorShowMode() == INDICATOR_MODE_ALWAYS_SHOW){
             leftSB.setShowIndicatorEnable(true);
         }
-        leftSB.draw(canvas);
+        // edited by.hnc
+        leftSB.draw(canvas, tickMarkMode == TRICK_MARK_MODE_HOUR);
 
         //draw right SeekBar
         if (seekBarMode == SEEKBAR_MODE_RANGE) {
             if (rightSB.getIndicatorShowMode() == INDICATOR_MODE_ALWAYS_SHOW) {
                 rightSB.setShowIndicatorEnable(true);
             }
-            rightSB.draw(canvas);
+            // edited by.hnc
+            rightSB.draw(canvas, tickMarkMode == TRICK_MARK_MODE_HOUR);
         }
     }
 
@@ -297,17 +314,18 @@ public class RangeSeekBar extends View {
 
         if (tickMarkNumber > 1) {
             int percent = (int)(range / tickMarkNumber);
-            if ((int)Math.abs(leftValue - minProgress) % percent != 0 || (int)Math.abs(rightValue - minProgress) % percent != 0 ){
+            if ((int)Math.abs(leftValue - minProgress) % percent != 0 ||
+                    (int)Math.abs(rightValue - minProgress) % percent != 0 ){
                 throw new IllegalArgumentException("The current value must be at the equal point");
             }
-            leftSB.currPercent = Math.abs(leftValue - minProgress) / range;
+            leftSB.currPercent = Math.round(Math.abs(leftValue - minProgress) / range);
             if (seekBarMode == SEEKBAR_MODE_RANGE) {
-                rightSB.currPercent = Math.abs(rightValue - minProgress) / range;
+                rightSB.currPercent = Math.round(Math.abs(rightValue - minProgress) / range);
             }
         } else {
-            leftSB.currPercent = Math.abs(leftValue - minProgress) / range;
+            leftSB.currPercent = Math.round(Math.abs(leftValue - minProgress) / range);
             if (seekBarMode == SEEKBAR_MODE_RANGE) {
-                rightSB.currPercent = Math.abs(rightValue - minProgress) / range;
+                rightSB.currPercent = Math.round(Math.abs(rightValue - minProgress) / range);
             }
         }
 
@@ -370,25 +388,25 @@ public class RangeSeekBar extends View {
         if (tickMarkNumber > 1) {
             if (seekBarMode == SEEKBAR_MODE_RANGE) {
                 if (leftSB.currPercent + cellsPercent * minRangeCells  <= 1 && leftSB.currPercent + cellsPercent * minRangeCells  > rightSB.currPercent) {
-                    rightSB.currPercent = leftSB.currPercent + cellsPercent * minRangeCells ;
+                    rightSB.currPercent = Math.round(leftSB.currPercent + cellsPercent * minRangeCells) ;
                 } else if (rightSB.currPercent - cellsPercent * minRangeCells  >= 0 && rightSB.currPercent - cellsPercent * minRangeCells  < leftSB.currPercent) {
-                    leftSB.currPercent = rightSB.currPercent - cellsPercent * minRangeCells ;
+                    leftSB.currPercent = Math.round(rightSB.currPercent - cellsPercent * minRangeCells) ;
                 }
             } else {
                 if (1 - cellsPercent * minRangeCells  >= 0 && 1 - cellsPercent * minRangeCells  < leftSB.currPercent) {
-                    leftSB.currPercent = 1 - cellsPercent * minRangeCells;
+                    leftSB.currPercent = Math.round(1 - cellsPercent * minRangeCells);
                 }
             }
         } else {
             if (seekBarMode == SEEKBAR_MODE_RANGE) {
                 if (leftSB.currPercent + reservePercent <= 1 && leftSB.currPercent + reservePercent > rightSB.currPercent) {
-                    rightSB.currPercent = leftSB.currPercent + reservePercent;
+                    rightSB.currPercent = Math.round(leftSB.currPercent + reservePercent);
                 } else if (rightSB.currPercent - reservePercent >= 0 && rightSB.currPercent - reservePercent < leftSB.currPercent) {
-                    leftSB.currPercent = rightSB.currPercent - reservePercent;
+                    leftSB.currPercent = Math.round(rightSB.currPercent - reservePercent);
                 }
             } else {
                 if (1 - reservePercent >= 0 && 1 - reservePercent < leftSB.currPercent) {
-                    leftSB.currPercent = 1 - reservePercent;
+                    leftSB.currPercent = Math.round(1 - reservePercent);
                 }
             }
         }

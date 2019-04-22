@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimaryDark">
+
+    <com.jaygoo.widget.RangeSeekBar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:rsb_indicator_arrow_size="3dp"
+        app:rsb_indicator_background_color="@android:color/transparent"
+        app:rsb_indicator_height="20dp"
+        app:rsb_indicator_show_mode="alwaysShow"
+
+        app:rsb_max="23"
+        app:rsb_min="7"
+        app:rsb_mode="range"
+
+        app:rsb_progress_color="#FF6969"
+
+        app:rsb_progress_default_color="@android:color/white"
+        app:rsb_thumb_drawable="@drawable/shape_seek_oval"
+
+        app:rsb_tick_mark_mode="hour"
+        app:rsb_tick_mark_text_color="@android:color/white"
+        app:rsb_tick_mark_text_size="12sp"
+        />
+
+</LinearLayout>

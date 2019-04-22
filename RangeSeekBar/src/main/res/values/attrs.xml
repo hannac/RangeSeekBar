@@ -22,12 +22,14 @@
         <attr name="rsb_tick_mark_number" format="integer"/>
 
         <!--Scale mode
-        Number according to the scale of the actual proportion of the distribution of the location (markTextArray must be a number)
+        Number according to the scale of the actual proportion of the distribution of the location
+         (markTextArray must be a number)
         Other bisects the current layout (markTextArray can be any character)
         -->
         <attr name="rsb_tick_mark_mode" format="enum">
             <enum name="number" value="0"/>
             <enum name="other" value="1"/>
+            <enum name="hour" value="2"/>
         </attr>
 
         <!--The tick mark text gravity -->

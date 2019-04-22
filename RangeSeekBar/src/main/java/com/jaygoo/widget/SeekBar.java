@@ -12,11 +12,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.graphics.Typeface;
-import android.support.v4.content.ContextCompat;
+import androidx.core.content.ContextCompat;
 import android.util.AttributeSet;
 
 import java.text.DecimalFormat;
@@ -89,6 +88,22 @@ public class SeekBar {
     public SeekBar(RangeSeekBar rangeSeekBar, AttributeSet attrs, boolean isLeft) {
         this.rangeSeekBar = rangeSeekBar;
         this.isLeft = isLeft;
+        initAttrs(attrs);
+        initVariables();
+        initBitmap();
+    }
+
+    /**
+     * SeekBar 를 생성하며 바로 위치를 세팅하는 생성자 by.hnc
+     * @param rangeSeekBar
+     * @param attrs
+     * @param isLeft
+     * @param currPercent
+     */
+    public SeekBar(RangeSeekBar rangeSeekBar, AttributeSet attrs, boolean isLeft, float currPercent) {
+        this.rangeSeekBar = rangeSeekBar;
+        this.isLeft = isLeft;
+        this.currPercent = currPercent;
         initAttrs(attrs);
         initVariables();
         initBitmap();
@@ -185,7 +200,8 @@ public class SeekBar {
         }
 
         indicatorRect.left = thumbSize / 2 - realIndicatorWidth / 2;
-        indicatorRect.top = bottom - indicatorHeight - thumbSize - indicatorMargin;
+        // by.hnc bottom - indicatorHeight ==> + 로 변경
+        indicatorRect.top = bottom + indicatorHeight - thumbSize - indicatorMargin;
         indicatorRect.right = indicatorRect.left + realIndicatorWidth;
         indicatorRect.bottom = indicatorRect.top + indicatorHeight;
         //draw default indicator arrow
@@ -194,9 +210,10 @@ public class SeekBar {
             //  b   c
             //    a
             int ax = thumbSize / 2;
-            int ay = bottom - thumbSize - indicatorMargin;
+            // by.hnc - ==> + 변경
+            int ay = bottom + thumbSize + indicatorMargin;
             int bx = ax - indicatorArrowSize;
-            int by = ay - indicatorArrowSize;
+            int by = ay + indicatorArrowSize;
             int cx = ax + indicatorArrowSize;
             indicatorArrowPath.reset();
             indicatorArrowPath.moveTo(ax, ay);
@@ -258,7 +275,7 @@ public class SeekBar {
      *
      * @param canvas Canvas
      */
-    protected void draw(Canvas canvas) {
+    protected void draw(Canvas canvas, boolean isHour) {
         if (!isVisible){
             return;
         }
@@ -287,6 +304,11 @@ public class SeekBar {
         if (indicatorTextStringFormat != null){
             text2Draw = String.format(indicatorTextStringFormat, text2Draw);
         }
+
+        // indicator 숫자(double 값)를 시간 23:00 형태로 변경함. by.hnc
+        if (isHour)
+            text2Draw = String.format("%02d:00", new Integer((int)Double.parseDouble(text2Draw)));
+
         paint.setTextSize(indicatorTextSize);
         paint.getTextBounds(text2Draw, 0, text2Draw.length(), indicatorTextRect);
         // translate canvas, then don't care left
@@ -312,7 +334,7 @@ public class SeekBar {
      */
     private void drawThumb(Canvas canvas) {
         if (thumbInactivatedBitmap != null && !isActivate){
-                canvas.drawBitmap(thumbInactivatedBitmap, 0, rangeSeekBar.getLineTop() + (rangeSeekBar.getProgressHeight() - thumbSize) / 2, null);
+            canvas.drawBitmap(thumbInactivatedBitmap, 0, rangeSeekBar.getLineTop() + (rangeSeekBar.getProgressHeight() - thumbSize) / 2, null);
         }else if (thumbBitmap != null){
             canvas.drawBitmap(thumbBitmap, 0, rangeSeekBar.getLineTop() + (rangeSeekBar.getProgressHeight() - thumbSize) / 2, null);
         }
